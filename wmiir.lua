@@ -46,18 +46,31 @@ local function export(t)
     return t
 end
 
+-- By default not set
+local address = nil
+
+local function popenbase(args)
+    return "wmiir " .. (address and "-a " .. address or "") .. " "
+end
+
+local function spacelist(t)
+    local s
+    for k,v in ipairs(t) do
+        s = s and s .. " " .. v or v
+    end
+    return s
+end
+
 -- Creates the element at path
--- @return success: path
--- @return failure: nil
 local function create(path)
-    ls(path)
+    local p = io.popen(spacelist{popenbase(), "create", path})
+    p:close()
 end
 
 -- Lists path if it is a directory.
--- @return success: array of entries
--- @return failure: nil
 local function ls(path)
-    print("Called from create(path)!!!")
+    local p = io.popen(spacelist{popenbase(), "ls", path})
+    p:close()
 end
 
 -- Reads the file at path.
@@ -67,24 +80,49 @@ end
 -- the next line will be read until EOF is reached. Then, the handle will be
 -- closed and nil be returned.
 local function read(path, handle)
+    local p = type(handle) == "userdata" and handle or io.popen(spacelist{popenbase(), "read", path})
+    if handle then
+        local line = p:read("*l")
+        if line then
+            return line, handle
+        else
+            p:close()
+            return nil
+        end
+    else
+        local file = p:read("*a")
+        p:close()
+        return file
+    end
 end
 
 -- Remove path from the file system.
 -- @return success: path
 -- @return failure: nil
 local function remove(path)
+    local p = io.popen(spacelist{popenbase(), "remove", path})
+    p:close()
 end
 
 -- Write data to file at path.
 -- @return success: path
 -- @return nil
 local function write(path, data)
+    local p = io.popen(spacelist{popenbase(), "write", path}, "w")
+    p:write(data)
+    p:close()
 end
 
 return export{
+    -- functions
     create = create,
     ls = ls,
     read = read,
     remove = remove,
-    write = write
+    write = write,
+    popen = popen,
+    spacelist = spacelist,
+    popenbase = popenbase,
+    -- variables
+    address = address
 }

@@ -1,4 +1,2 @@
 local wmiir = require("wmiir")
-print(type(wmiir))
-
-wmiir.create()
+wmiir.write("/ctl", "bar on top")
