@@ -19,6 +19,16 @@ local handlers = {
     -- Arguments will be passed via unpack()
 }
 
+-- calls f(unpack(args)) n times, catches all results
+-- and returns them in a table.
+local function ntimes(f, args, n)
+    local t = {}
+    for i=1, n do
+        table.insert(t, unpack{f(unpack(args))})
+    end
+    return unpack(t)
+end
+
 local function parseline(line)
     local space = {}
     local e
@@ -41,7 +51,8 @@ local function parseline(line)
     until l > r 
     if #space > 1 then
         while #space > 1 do
-            x, y = table.remove(space, 1), table.remove(space, 1)
+--            x, y = table.remove(space, 1), table.remove(space, 1)
+            x, y = ntimes(table.remove, {space, 1}, 2)
             table.insert(args, string.sub(line, x, y))
         end
         e = table.remove(args, 1)
