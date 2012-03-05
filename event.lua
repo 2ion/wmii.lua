@@ -3,17 +3,17 @@ local export = require("export")
 
 local handlers = {
     -- called for every event
-    catchall = function (t) true end,
+    catchall = function (t) print() end,
     -- called for every iteration of the event loop AFTER event processing
-    nilevent = function () true end,
+    nilevent = function () print() end,
     -- if non-nil, called ONCE at the beginning of the next iteration of the loop and then CLEARED
     -- interrupt() will get loop()'s pipe as an argument
-    interrupt = function (p) true end,
+    interrupt = function (p) print() end,
     -- called if there is no handler for a event e
-    drop = function (e, t) true end,
+    drop = function (e, t) print() end,
     -- called if no events are available, before loop() returns
     -- If set, loop() will return cleanup().
-    cleanup = function() true end
+    cleanup = function() print() end
     -- every wmii event gets an entry here ↓, of the form
     -- event-name = function(...) <chunk> end
     -- Arguments will be passed via unpack()
@@ -39,11 +39,15 @@ local function parseline(line)
         table.insert(space, x)
         l = x + 1
     until l > r 
-    while #space > 1 do
-        x, y = table.remove(space, 1), table.remove(space, 1)
-        table.insert(args, string.sub(line, x, y))
+    if #space > 1 then
+        while #space > 1 do
+            x, y = table.remove(space, 1), table.remove(space, 1)
+            table.insert(args, string.sub(line, x, y))
+        end
+        e = table.remove(args, 1)
+    else
+        e = line
     end
-    e = table.remove(args, 1)
     return e, args
 end
 
@@ -65,9 +69,12 @@ local function loop()
         e, args = parseline(line)
         if handlers[e] then
             handlers[e](unpack(args))
-        else
-
-
+        elseif handlers.drop then
+            handlers.drop(e, args)
+        end
+        if handlers.catchall then
+            handlers.catchall(e, args)
+        end
         if handlers.nilevent then
             handlers.nilevent()
         end
