@@ -29,6 +29,11 @@ local function ntimes(f, args, n)
     return unpack(t)
 end
 
+-- Splits a line along spaces.
+-- @return e, t
+-- where e is the first string (event name) and t is an array
+-- holding the remaining strings in ipairs() order.
+-- No arguments -> t is nil
 local function parseline(line)
     local space = {}
     local e
