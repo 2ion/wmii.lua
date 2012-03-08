@@ -22,9 +22,9 @@ local handlers = {
 -- calls f(unpack(args)) n times, catches all results
 -- and returns them in a table.
 local function ntimes(f, args, n)
-    local t = {}
+    local t
     for i=1, n do
-        table.insert(t, unpack{f(unpack(args))})
+        t = { unpack{f(unpack(args))} } 
     end
     return unpack(t)
 end
